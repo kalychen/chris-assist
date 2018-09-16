@@ -494,6 +494,7 @@ public class DatabaseUtils {
         //遍历，创建实体类
         Set<String> keySet = dataBaseStructMap.keySet();
         for (String tableName : keySet) {
+
             if (!enableProTable(tableName, params)) {
                 continue;
             }
@@ -505,6 +506,11 @@ public class DatabaseUtils {
     //判断这张表是否允许处理
     private static boolean enableProTable(String tableName, EntityBuildParams params) {
         Set<String> enableFlags = params.getEnableFlags();
+        if (enableFlags == null || enableFlags.size() < 1) {
+            //如果没有设置这种标记，则默认所有表都被允许操作
+            //在调用者判断效率会更高一些
+            return true;
+        }
         for (String flag : enableFlags) {
             if (tableName.startsWith(flag)) {
                 return true;

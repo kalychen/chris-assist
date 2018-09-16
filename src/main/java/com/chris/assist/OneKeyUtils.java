@@ -10,10 +10,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * YdxApiWebApp
- * com.ydx.app.utils
  * Created by Chris Chen
- * 2018/1/26
+ * 2018/9/15
  * Explain:关于一键操作的工具
  */
 public class OneKeyUtils {

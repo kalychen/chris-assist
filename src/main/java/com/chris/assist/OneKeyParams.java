@@ -29,6 +29,7 @@ public class OneKeyParams {
     private Map<String, String> replaceSchemeMap;//替换方案
     private Map<String, String> classTagMap;//类标记集合，其实就是单词表，专业点，要符合规范
 
+    private ProjectInfo projectInfo;//用于一键生成dao service和api层的项目信息
 
     private OneKeyParams() {
     }
@@ -162,5 +163,42 @@ public class OneKeyParams {
 
     public void create() {
         OneKeyUtils.onkey(this);
+    }
+
+    public ProjectInfo getProjectInfo() {
+        return projectInfo;
+    }
+
+    public OneKeyParams setProjectInfo(ProjectInfo projectInfo) {
+        this.projectInfo = projectInfo;
+        setOrmPackageName(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getOrmPackageName());
+        setOrmExt(this.projectInfo.getEntityExtName());
+        setClassPlaceHolder(this.projectInfo.getSampleEntityName());
+        setClassTagPlaceHolder(this.projectInfo.getSampleEntityTag());
+        return this;
+    }
+
+    public void createDao() {
+        setTempletePackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleDaoPackagename());
+        setTempleteFileName(this.projectInfo.getSampleEntityName() + this.projectInfo.getSampleDaoExt() + ".java");
+        setTargetPackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleDaoPackagename());
+        setTargetFileExt(this.projectInfo.getSampleDaoExt());
+        create();
+    }
+
+    public void createService() {
+        setTempletePackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleServicePackagename());
+        setTempleteFileName(this.projectInfo.getSampleEntityName() + this.projectInfo.getSampleServiceExt() + ".java");
+        setTargetPackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleServicePackagename());
+        setTargetFileExt(this.projectInfo.getSampleServiceExt());
+        create();
+    }
+
+    public void createApi() {
+        setTempletePackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleApiPackagename());
+        setTempleteFileName(this.projectInfo.getSampleEntityName() + this.projectInfo.getSampleApiExt() + ".java");
+        setTargetPackage(this.projectInfo.getSrcPackageName() + "." + this.projectInfo.getSampleApiPackagename());
+        setTargetFileExt(this.projectInfo.getSampleApiExt());
+        create();
     }
 }

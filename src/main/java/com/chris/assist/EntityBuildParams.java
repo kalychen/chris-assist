@@ -2,9 +2,7 @@ package com.chris.assist;
 
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Chris Chen
@@ -20,6 +18,7 @@ public class EntityBuildParams {
     private Map<String, String> dbTypeMap = new HashMap<>();//用于进行数据库表列类型转换的映射表
     private boolean isParseTimeStamp = true;//在列类型转换的时候是否解析TimeStamp，即转换为为Long
     private String fieldModifier = "public";// 字段修饰符
+    private Set<String> enableFlags;//允许操作的数据表的标记，一般标记在前缀
 
     //附加信息
     private String appName = "ChrisApplication";//应用程序名称
@@ -156,4 +155,36 @@ public class EntityBuildParams {
         this.explain = explain;
         return this;
     }
+
+    public EntityBuildParams setEnableFlags(Set<String> enableFlags) {
+        this.enableFlags = enableFlags;
+        return this;
+    }
+
+    public Set<String> getEnableFlags() {
+        return enableFlags;
+    }
+
+    public EntityBuildParams setEnableFlags(String[] enableFlags) {
+        if (enableFlags != null) {
+            if (this.enableFlags == null) {
+                this.enableFlags = new HashSet<>();
+            }
+            for (String flag : enableFlags) {
+                this.enableFlags.add(flag);
+            }
+        }
+        return this;
+    }
+
+    public EntityBuildParams addEnableFlag(String flag) {
+        if (flag != null) {
+            if (this.enableFlags == null) {
+                this.enableFlags = new HashSet<>();
+            }
+            this.enableFlags.add(flag);
+        }
+        return this;
+    }
+
 }

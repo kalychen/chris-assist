@@ -15,6 +15,8 @@ import com.chris.utils.StringUtils;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.*;
 
@@ -492,9 +494,23 @@ public class DatabaseUtils {
         //遍历，创建实体类
         Set<String> keySet = dataBaseStructMap.keySet();
         for (String tableName : keySet) {
+            if (!enableProTable(tableName, params)) {
+                continue;
+            }
             String className = getClassNameFromTableName(params, tableName);
             IoUtils.createFileInPackage(params.getOrmPackageName(), StringUtils.getUpperCamel(className) + params.getOrmExt() + ".java", buildeOrmContent(params, tableName, className));
         }
+    }
+
+    //判断这张表是否允许处理
+    private static boolean enableProTable(String tableName, EntityBuildParams params) {
+        Set<String> enableFlags = params.getEnableFlags();
+        for (String flag : enableFlags) {
+            if (tableName.startsWith(flag)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //从表明生成一个合法的类名
@@ -594,5 +610,82 @@ public class DatabaseUtils {
         dbTypeMap.put(Boolean.class.getName(), Byte.class.getName());
 
         return dbTypeMap;
+    }
+
+    /**
+     * 创建DAO: database to object对象
+     *
+     * @param params
+     */
+    public static void createDtos(BuildParams params) {
+        //获取orm累类集合
+        List<Class<?>> classList = ClassUtils.getClasses(params.getOrmPackageName());
+        //遍历，创建扩展实体类
+        for (Class<?> clazz : classList) {
+            params.setOrmName(clazz.getName());
+            IoUtils.createFileInPackage(params.getxPackageName(), clazz.getSimpleName().replace(params.getOrmExt(), params.getxClassExt()) + ".java", buildDtoContent(clazz, params));
+        }
+    }
+
+    /**
+     * 把实体类复制到一个新的类，并且去掉所有类、属性上面的注解
+     * 所有属性更改为public，去掉所有方法
+     * 再加上lombok的注解
+     *
+     * @param sourceClass 复制源类
+     * @param params      参数体 这玩意儿还是分开 要做修改
+     */
+    public static String buildDtoContent(Class<?> sourceClass, BuildParams params) {
+        String packageName = params.getxPackageName();//新的包名
+        //定义
+        StringBuilder content = new StringBuilder();
+        Set<Class<?>> fieldClassSet = new HashSet<>();//所有属性上面非基本数据类型的类 导入包
+        //Set<Class<?>> annotationSet = new HashSet<>();//所有注解
+        List<String> noteList = new ArrayList<>();//类上面的注释
+        List<String> fieldLines = new ArrayList<>();//属性行
+
+        //搜集
+        noteList.add("Explain: DTO for ");
+        Field[] fields = sourceClass.getDeclaredFields();
+        for (Field field : fields) {
+
+            Type type = field.getGenericType();
+            String typeName = type.getTypeName();
+            Class<?> fieldClass = TypeUtils.getClassForName(typeName);
+            if (!(TypeUtils.equalsPrimitive(fieldClass) || String.class.getName().equals(fieldClass.getName()))) {
+                fieldClassSet.add(fieldClass);
+            }
+            fieldLines.add(new StringBuilder().append("public ")
+                    .append(typeName.substring(typeName.lastIndexOf(".") + 1))
+                    .append(" ")
+                    .append(field.getName())
+                    .toString());
+        }
+
+        //构建内容
+        ////1.包名
+        content.append("package ").append(packageName).append(";\n\n");
+        ////2.导入包
+        for (Class<?> clazz : fieldClassSet) {
+            content.append("import ").append(clazz.getName()).append(";\n");
+        }
+        content.append("\n");
+        ////3.注解暂时忽略 使用 public修饰
+        content.append("/**\n");
+        for (String note : noteList) {
+            content.append(" * ").append(note).append("\n");
+        }
+        content.append(" */\n\n");
+        ////4. 类开始
+        String className = sourceClass.getSimpleName().replace(params.getOrmExt(), params.getxClassExt());
+        content.append("public class ").append(className).append("{\n");
+        ////5. 属性
+        for (String fieldLine : fieldLines) {
+            content.append("    ").append(fieldLine).append(";\n");
+        }
+        ////6. 类结束部分
+        content.append("}");
+
+        return content.toString();
     }
 }

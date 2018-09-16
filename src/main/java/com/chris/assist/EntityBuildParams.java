@@ -177,6 +177,18 @@ public class EntityBuildParams {
         return this;
     }
 
+    public EntityBuildParams addEnableFlags(String... flags) {
+        if (flags != null && flags.length > 0) {
+            if (this.enableFlags == null) {
+                this.enableFlags = new HashSet<>();
+            }
+            for (String flag : flags) {
+                this.enableFlags.add(flag);
+            }
+        }
+        return this;
+    }
+
     public EntityBuildParams addEnableFlag(String flag) {
         if (flag != null) {
             if (this.enableFlags == null) {

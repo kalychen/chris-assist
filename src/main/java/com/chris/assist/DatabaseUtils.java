@@ -645,7 +645,8 @@ public class DatabaseUtils {
         List<String> fieldLines = new ArrayList<>();//属性行
 
         //搜集
-        noteList.add("Explain: DTO for ");
+        String classExt = StringUtils.isEmpty(params.getxClassExt()) ? "Obj" : params.getxClassExt();
+        noteList.add("Explain: " + classExt + " for ");
         Field[] fields = sourceClass.getDeclaredFields();
         for (Field field : fields) {
 

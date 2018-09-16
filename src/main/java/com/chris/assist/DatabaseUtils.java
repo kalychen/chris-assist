@@ -640,23 +640,27 @@ public class DatabaseUtils {
         //定义
         StringBuilder content = new StringBuilder();
         Set<Class<?>> fieldClassSet = new HashSet<>();//所有属性上面非基本数据类型的类 导入包
-        //Set<Class<?>> annotationSet = new HashSet<>();//所有注解
         List<String> noteList = new ArrayList<>();//类上面的注释
         List<String> fieldLines = new ArrayList<>();//属性行
 
         //搜集
+        Map<String, String> iptAnnoMap = params.getIptAnnoMap();//加在类上面的注解
         String classExt = StringUtils.isEmpty(params.getxClassExt()) ? "Obj" : params.getxClassExt();
-        noteList.add("Explain: " + classExt + " for ");
+        noteList.add("Quick Build Beta Framework");
+        noteList.add("Create by " + params.getAuthor());
+        noteList.add(params.getTime());
+        noteList.add("Explain: " + classExt + " for " + sourceClass.getSimpleName());
         Field[] fields = sourceClass.getDeclaredFields();
         for (Field field : fields) {
-
             Type type = field.getGenericType();
             String typeName = type.getTypeName();
-            Class<?> fieldClass = TypeUtils.getClassForName(typeName);
+            Class<?> fieldClass = TypeUtils.getClassForName(typeName);//导入非基本类型
             if (!(TypeUtils.equalsPrimitive(fieldClass) || String.class.getName().equals(fieldClass.getName()))) {
                 fieldClassSet.add(fieldClass);
             }
-            fieldLines.add(new StringBuilder().append("public ")
+            fieldLines.add(new StringBuilder()
+                    .append(params.getFieldModifier())
+                    .append(" ")
                     .append(typeName.substring(typeName.lastIndexOf(".") + 1))
                     .append(" ")
                     .append(field.getName())
@@ -667,24 +671,33 @@ public class DatabaseUtils {
         ////1.包名
         content.append("package ").append(packageName).append(";\n\n");
         ////2.导入包
-        for (Class<?> clazz : fieldClassSet) {
+        for (Class<?> clazz : fieldClassSet) {//属性类型部分
             content.append("import ").append(clazz.getName()).append(";\n");
         }
         content.append("\n");
-        ////3.注解暂时忽略 使用 public修饰
+        for (String annoName : iptAnnoMap.values()) {//类注解部分
+            content.append("import ").append(annoName).append(";\n");
+        }
+        content.append("\n");
+        ////3.注释
         content.append("/**\n");
         for (String note : noteList) {
             content.append(" * ").append(note).append("\n");
         }
         content.append(" */\n\n");
-        ////4. 类开始
+
+        ////4.注解
+        for (String annoSimpleName : iptAnnoMap.keySet()) {//类注解部分
+            content.append("@").append(annoSimpleName).append("\n");
+        }
+        ////5. 类开始
         String className = sourceClass.getSimpleName().replace(params.getOrmExt(), params.getxClassExt());
         content.append("public class ").append(className).append("{\n");
-        ////5. 属性
+        ////6. 属性
         for (String fieldLine : fieldLines) {
             content.append("    ").append(fieldLine).append(";\n");
         }
-        ////6. 类结束部分
+        ////7. 类结束部分
         content.append("}");
 
         return content.toString();

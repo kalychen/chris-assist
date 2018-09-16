@@ -3,6 +3,7 @@ package com.chris.assist;
 import java.sql.Connection;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -21,6 +22,9 @@ public class BuildParams {
     private String xExt;//扩展实体类后缀 用于外键字段扩展
     private Map<String, String> dbTypeMap;//用于进行数据库表列类型转换的映射表
     private boolean parseTimeStamp = true;//在列类型转换的时候是否解析TimeStamp，即转换为为Long
+
+    private Map<String, String> iptAnnoMap = new HashMap<>();//Orm类中需要添加的注解 key为注解 value为注解类名
+    private String fieldModifier = "public";// 字段修饰符
 
     //附加信息
     private String appName = "ChrisApplication";//应用程序名称
@@ -184,6 +188,31 @@ public class BuildParams {
 
     public BuildParams setParseTimeStamp(boolean parseTimeStamp) {
         this.parseTimeStamp = parseTimeStamp;
+        return this;
+    }
+
+    public Map<String, String> getIptAnnoMap() {
+        return iptAnnoMap;
+    }
+
+    public BuildParams setIptAnnoMap(Map<String, String> iptAnnoMap) {
+        this.iptAnnoMap = iptAnnoMap;
+        return this;
+    }
+
+    public BuildParams addIptAnno(Class<?> iptAnnotation) {
+        if (this.iptAnnoMap==null) {
+            this.iptAnnoMap = new HashMap<>();
+        }
+        this.iptAnnoMap.put(iptAnnotation.getSimpleName(), iptAnnotation.getName());
+        return this;
+    }
+    public String getFieldModifier() {
+        return fieldModifier;
+    }
+
+    public BuildParams setFieldModifier(String modifier) {
+        this.fieldModifier = modifier;
         return this;
     }
 }
